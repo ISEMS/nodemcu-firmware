@@ -14,6 +14,9 @@
 #include "lwip/api.h"
 #include "lwip/err.h"
 #include "lwip/ip_addr.h"
+#ifdef CONFIG_IP_ROUTING
+#include "lwip/ip4_route.h"
+#endif
 #include "lwip/dns.h"
 #include "lwip/tcp.h"
 #include "lwip/inet.h"
@@ -991,6 +994,77 @@ static int net_getdnsserver( lua_State* L ) {
   return 1;
 }
 
+// --- Routing ----------------------------------------------------------
+
+#ifdef CONFIG_IP_ROUTING
+
+static int net_route_from_table( lua_State *L, struct ip4_route *route) {
+  size_t l;
+  luaL_checkanytable (L, 1);
+  lua_settop (L, 1);
+  lua_getfield (L, 1, "dest");
+  const char *dest = luaL_checklstring( L, -1, &l );
+  if (l>16 || dest == NULL ||
+      !ip4addr_aton (dest, &route->dest))
+    return luaL_error( L, "invalid dest ip" );
+  lua_getfield (L, 1, "prefixlen");
+  route->prefixlen=luaL_checkint(L, -1);
+  lua_getfield (L, 1, "nexthop");
+  const char *nexthop = luaL_checklstring( L, -1, &l );
+  if (l>16 || nexthop == NULL ||
+      !ip4addr_aton (nexthop, &route->nexthop))
+    return luaL_error( L, "invalid dest ip" );
+  lua_getfield (L, 1, "iface");
+  route->iface=luaL_checkint(L, -1);
+  return 1;
+}
+
+static int net_route_add( lua_State* L ) {
+  struct ip4_route route;
+  int ret=net_route_from_table(L, &route);
+  if (ret == 1)
+    ip4_route_add(&route);
+  return ret;
+}
+
+static int net_route_delete( lua_State* L ) {
+  struct ip4_route route;
+  int ret=net_route_from_table(L, &route);
+  if (ret == 1)
+    ip4_route_delete(&route);
+  return ret;
+}
+
+static int net_route_getlen( lua_State* L ) {
+  lua_pushinteger(L, ip4_route_getlen());
+  return 1;
+}
+
+static int net_route_get( lua_State* L ) {
+  const struct ip4_route *route=ip4_route_get(luaL_checkint(L, 1));
+  lua_newtable( L );
+  if (route) {
+    char iptmp[IP_STR_SZ];
+    ip4str (iptmp, &route->dest);
+    lua_pushstring(L, iptmp);
+    lua_pushinteger(L, route->prefixlen);
+    ip4str (iptmp, &route->nexthop);
+    lua_pushstring(L, iptmp);
+    lua_pushinteger(L, route->iface);
+  } else {
+    lua_pushnil(L);
+    lua_pushnil(L);
+    lua_pushnil(L);
+    lua_pushnil(L);
+  }
+  lua_setfield(L, -5, "iface");
+  lua_setfield(L, -4, "nexthop");
+  lua_setfield(L, -3, "prefixlen");
+  lua_setfield(L, -2, "dest");
+  return 1;
+}
+
+#endif
 
 // --- Lua event dispatch -----------------------------------------------
 
@@ -1194,6 +1268,15 @@ LROT_BEGIN(net_dns)
   LROT_FUNCENTRY( resolve,      net_dns_static )
 LROT_END(net_dns, NULL, 0)
 
+#ifdef CONFIG_IP_ROUTING
+LROT_BEGIN(net_route)
+  LROT_FUNCENTRY( add,          net_route_add )
+  LROT_FUNCENTRY( delete,       net_route_delete )
+  LROT_FUNCENTRY( getlen,       net_route_getlen )
+  LROT_FUNCENTRY( get,          net_route_get )
+LROT_END(net_dns, NULL, 0)
+#endif
+
 LROT_BEGIN(net)
   LROT_FUNCENTRY( createServer,     net_createServer )
   LROT_FUNCENTRY( createConnection, net_createConnection )
@@ -1201,6 +1284,9 @@ LROT_BEGIN(net)
   LROT_FUNCENTRY( multicastJoin,    net_multicastJoin )
   LROT_FUNCENTRY( multicastLeave,   net_multicastLeave )
   LROT_TABENTRY ( dns,              net_dns )
+#ifdef CONFIG_IP_ROUTING
+  LROT_TABENTRY ( route,            net_route )
+#endif
   LROT_NUMENTRY ( TCP,              TYPE_TCP )
   LROT_NUMENTRY ( UDP,              TYPE_UDP )
   LROT_TABENTRY ( __metatable,      net )
