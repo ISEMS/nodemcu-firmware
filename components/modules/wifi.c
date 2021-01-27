@@ -76,6 +76,13 @@ static int wifi_mode (lua_State *L)
   }
 }
 
+static int wifi_setps (lua_State *L)
+{
+  int ps = luaL_checkinteger (L, 1);
+  esp_err_t err;
+  return ((err = esp_wifi_set_ps (ps)) == ESP_OK) ?
+        0 : luaL_error (L, "failed to set ps, code %d", err);
+}
 
 static int wifi_start (lua_State *L)
 {
@@ -115,6 +122,7 @@ LROT_BEGIN(wifi)
   LROT_FUNCENTRY( getchannel,                 wifi_getchannel )
   LROT_FUNCENTRY( getmode,                    wifi_getmode )
   LROT_FUNCENTRY( mode,                       wifi_mode )
+  LROT_FUNCENTRY( setps,                      wifi_setps )
   LROT_FUNCENTRY( start,                      wifi_start )
   LROT_FUNCENTRY( stop,                       wifi_stop )
 
@@ -136,6 +144,10 @@ LROT_BEGIN(wifi)
   LROT_NUMENTRY ( STR_WIFI_SECOND_CHAN_NONE,  WIFI_SECOND_CHAN_NONE )
   LROT_NUMENTRY ( STR_WIFI_SECOND_CHAN_ABOVE, WIFI_SECOND_CHAN_ABOVE )
   LROT_NUMENTRY ( STR_WIFI_SECOND_CHAN_BELOW, WIFI_SECOND_CHAN_BELOW )
+
+  LROT_NUMENTRY ( PS_NONE,                    WIFI_PS_NONE)
+  LROT_NUMENTRY ( PS_MIN_MODEM,               WIFI_PS_MIN_MODEM)
+  LROT_NUMENTRY ( PS_MAX_MODEM,               WIFI_PS_MAX_MODEM)
 LROT_END(wifi, NULL, 0)
 
 NODEMCU_MODULE(WIFI, "wifi", wifi, wifi_init);

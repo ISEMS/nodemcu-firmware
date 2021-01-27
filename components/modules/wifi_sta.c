@@ -279,6 +279,12 @@ static int wifi_sta_config (lua_State *L)
       return luaL_error (L, "invalid BSSID: %s", bssid);
   }
 
+  lua_getfield (L, 1, "listen_interval");
+  if (lua_isnumber (L, -1))
+  {
+    cfg.sta.listen_interval = luaL_checkinteger(L, -1);
+  }
+
   lua_getfield (L, 1, "auto");
   bool auto_conn = luaL_optbool (L, -1, true);
 
