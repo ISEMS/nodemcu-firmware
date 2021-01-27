@@ -16,6 +16,7 @@
 #include "lwip/ip_addr.h"
 #ifdef CONFIG_IP_ROUTING
 #include "lwip/ip4_route.h"
+#include "esp_wifi.h"
 #endif
 #include "lwip/dns.h"
 #include "lwip/tcp.h"
@@ -1286,6 +1287,10 @@ LROT_BEGIN(net)
   LROT_TABENTRY ( dns,              net_dns )
 #ifdef CONFIG_IP_ROUTING
   LROT_TABENTRY ( route,            net_route )
+  LROT_NUMENTRY ( IF_WIFI_STA,      ESP_IF_WIFI_STA )
+  LROT_NUMENTRY ( IF_WIFI_AP,       ESP_IF_WIFI_AP )
+  LROT_NUMENTRY ( IF_ETH,           ESP_IF_ETH )
+  LROT_NUMENTRY ( IF_MAX,           ESP_IF_MAX )
 #endif
   LROT_NUMENTRY ( TCP,              TYPE_TCP )
   LROT_NUMENTRY ( UDP,              TYPE_UDP )
