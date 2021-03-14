@@ -2,7 +2,7 @@
 #include "module.h"
 #include "lauxlib.h"
 #include <stdint.h>
-#include <esp_task_wdt.h>
+#include "platform_wdt.h"
 #include "task/task.h"
 
 #include "freertos/FreeRTOS.h"
@@ -222,7 +222,7 @@ static int tmr_state(lua_State* L)
 
 // Lua: tmr.wdclr()
 static int tmr_wdclr( lua_State* L ){
-  esp_task_wdt_reset();
+  platform_wdt_feed();
   return 0;
 }
 
