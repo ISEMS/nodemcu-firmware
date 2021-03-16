@@ -502,6 +502,11 @@ static int net_listen( lua_State *L ) {
         return luaL_error(L, "cannot allocate netconn");
       netconn_set_nonblocking(ud->netconn, 1);
       netconn_set_noautorecved(ud->netconn, 1);
+      if (lua_isnumber(L, stack) || lua_isboolean(L, stack)) {
+        if (lua_toboolean(L, stack++)) {
+         ip_set_option(ud->netconn->pcb.ip, SOF_REUSEADDR);
+        }
+      }
 
       err = netconn_bind(ud->netconn, &addr, port);
       if (err == ERR_OK) {

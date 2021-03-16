@@ -2,6 +2,7 @@
 #include "module.h"
 #include "lauxlib.h"
 #include <stdint.h>
+#include "platform_wdt.h"
 #include "task/task.h"
 
 #include "freertos/FreeRTOS.h"
@@ -219,6 +220,12 @@ static int tmr_state(lua_State* L)
   return 2;
 }
 
+// Lua: tmr.wdclr()
+static int tmr_wdclr( lua_State* L ){
+  platform_wdt_feed();
+  return 0;
+}
+
 // Lua: tmr.create()
 static int tmr_create( lua_State *L ) {
   tmr_t ud = (tmr_t)lua_newuserdata(L, sizeof(tmr_struct_t));
@@ -248,6 +255,7 @@ LROT_BEGIN(tmr_dyn)
 LROT_END(tmr_dyn, NULL, 0)
 
 LROT_BEGIN(tmr)
+  LROT_FUNCENTRY( wdclr,        tmr_wdclr )
   LROT_FUNCENTRY( create,       tmr_create )
   LROT_NUMENTRY ( ALARM_SINGLE, TIMER_MODE_SINGLE )
   LROT_NUMENTRY ( ALARM_SEMI,   TIMER_MODE_SEMI )

@@ -78,9 +78,12 @@ static int time_initNTP(lua_State *L)
 {
   size_t l;
   const char *server = luaL_optlstring (L, 1, "pool.ntp.org", &l);
+  static char *s;
+  free(s);
+  s=strdup(server);
   
   sntp_setoperatingmode(SNTP_OPMODE_POLL);
-  sntp_setservername(0, server);
+  sntp_setservername(0, s);
   sntp_init();
   
   return 0;
