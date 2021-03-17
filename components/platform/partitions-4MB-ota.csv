@@ -1,0 +1,12 @@
+# Name,  Type, SubType, Offset,  Size
+nvs,           data, nvs,      0x9000,   0x6000
+phy_init,      data, phy,      0xf000,   0x1000
+# factory,     app,  factory, 0x10000, 0x180000
+ota_0,         app,  ota_0,   0x10000, 0x180000
+# Type 0xC2 => NodeMCU. SubTypes: 0x00 = SPIFFS, 0x01 = LFS
+lfs,           0xC2, 0x01,          ,   0x10000
+nodemcuspiffs, 0xC2, 0x00,          ,   0x70000
+# END 0x210000
+ota_1,         app,  ota_1,  0x270000, 0x180000
+# Gap 0xe000
+otadata,       data, ota,    0x3fe000,   0x2000
