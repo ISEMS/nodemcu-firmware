@@ -256,8 +256,10 @@ lnet_userdata *net_create( lua_State *L, enum net_type type ) {
       ud->client.cb_disconnect_ref = LUA_NOREF;
       ud->client.hold = 0;
       ud->client.num_held = 0;
+      ud->client.num_send = 0;
       ud->client.connecting = false;
     case TYPE_UDP_SOCKET:
+      ud->client.num_send = 0;
       ud->client.wait_dns = 0;
       ud->client.cb_dns_ref = LUA_NOREF;
       ud->client.cb_receive_ref = LUA_NOREF;
@@ -286,7 +288,6 @@ void handle_net_event(task_param_t param, task_prio_t prio)
   lnet_userdata *ud = userdata_from_netconn(nbe.netconn);
   if (!ud)
     return;
-
   if (nbe.event == EVT_ERR)
   {
     lerr_cb(lua_getstate(), ud, nbe.err);
@@ -633,7 +634,7 @@ static int net_send( lua_State *L ) {
   }
   data = luaL_checklstring(L, stack++, &datalen);
   if (!data || datalen == 0) return luaL_error(L, "no data to send");
-  ud->client.num_send = datalen;
+  ud->client.num_send += datalen;
   if (lua_isfunction(L, stack) || lua_islightfunction(L, stack)) {
     lua_pushvalue(L, stack++);
     luaL_unref(L, LUA_REGISTRYINDEX, ud->client.cb_sent_ref);
